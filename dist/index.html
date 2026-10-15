@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Your private spending dashboard. Explore transactions, review categories and import future bank statements locally."><title>Spend Insights · Hardik</title><link rel="stylesheet" href="styles.css"><script src="vendor/xlsx.full.min.js" defer></script><script type="module" src="app.mjs"></script></head>
+<body>
+<div class="shell">
+ <aside class="sidebar">
+  <a class="brand" href="#overview" aria-label="Spend Insights home"><span class="brand-icon">s<span>i</span></span><span>Spend<br><b>Insights</b></span></a>
+  <div class="workspace-label">PERSONAL FINANCE</div>
+  <nav aria-label="Main navigation">
+   <a href="#overview" data-page="overview"><i data-icon="overview"></i>Overview</a>
+   <a href="#transactions" data-page="transactions"><i data-icon="transactions"></i>Transactions<span id="nav-review"></span></a>
+   <a href="#patterns" data-page="patterns"><i data-icon="patterns"></i>Patterns</a>
+   <a href="#planner" data-page="planner"><i data-icon="card"></i>Card fit</a>
+   <a href="#data" data-page="data"><i data-icon="data"></i>Statements</a>
+  </nav>
+  <div class="side-bottom"><div class="private-note"><span class="live-dot"></span>Private dashboard</div><p>New uploads and category edits stay in this browser.</p><button class="side-import" data-action="upload"><i data-icon="upload"></i>Import statement</button><div class="profile"><span class="avatar">HP</span><span>Hardik Pachgade<small>Personal workspace</small></span></div></div>
+ </aside>
+ <div class="main-shell">
+  <header class="topbar"><span class="breadcrumb">Workspace <span>/</span> <b id="page-label">Overview</b></span><div class="top-actions"><span class="local-status" id="save-status">Saved on this browser</span><button class="button small" data-action="backup"><i data-icon="download"></i>Backup</button><button class="button primary small" data-action="upload"><i data-icon="plus"></i>Import statement</button></div></header>
+  <main id="main"><div class="loading">Reading your statement…</div></main>
+  <footer><span>SPEND INSIGHTS</span><span>Suggested categories are editable. Bank narrations do not prove a purchase’s card eligibility.</span></footer>
+ </div>
+</div>
+<input type="file" id="file-input" accept=".numbers,.xlsx,.xls,.csv,.tsv,.json" hidden>
+<dialog id="import-dialog" aria-labelledby="import-title"><div id="import-body"></div></dialog>
+<dialog id="detail-dialog" aria-labelledby="detail-title"><div id="detail-body"></div></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript>This dashboard needs JavaScript to analyze statements in your browser.</noscript>
+</body></html>

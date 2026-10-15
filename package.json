@@ -1,0 +1,1 @@
+{"name":"spend-insights","private":true,"version":"1.0.0","devDependencies":{"linkedom":"0.18.12"},"scripts":{"test":"node test.mjs"}}
