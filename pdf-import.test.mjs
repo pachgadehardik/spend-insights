@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {extractStatementPages,textItemsToLines} from './dist/pdf-import.mjs';
+const item=(str,x,y,width=str.length*5)=>({str,width,height:10,transform:[10,0,0,10,x,y]});
+const header=y=>[item('Date',30,y),item('Description',120,y),item('Debit',340,y),item('Credit',440,y),item('Balance',530,y)];
+const row=(date,desc,debit,credit,balance,y)=>[item(date,30,y),item(desc,120,y),...(debit?[item(debit,345,y)]:[]),...(credit?[item(credit,445,y)]:[]),item(balance,535,y)];
+const p1={width:650,items:[...header(700),...row('01/10/2026','Grocery market','125.00','','9875.00',680),item('weekly groceries',120,668),...row('02/10/2026','Salary','','5000.00','14875.00',645)]};
+const p2={width:650,items:[...header(700),...row('03/10/2026','Electricity','75.00','','14800.00',680)]};
+const extracted=extractStatementPages([p1,p2]);
+assert.deepEqual(extracted.rows,[['Date','Description','Debit','Credit','Balance'],['01/10/2026','Grocery market weekly groceries','125.00','','9875.00'],['02/10/2026','Salary','','5000.00','14875.00'],['03/10/2026','Electricity','75.00','','14800.00']]);
+assert.deepEqual(extracted.rowLocations.at(-1),{page:2,line:2});
+assert.equal(extracted.rowLocations.length,extracted.rows.length);
+assert.equal(extracted.pages,2);assert.equal(extracted.usedOCR,false);
+assert.throws(()=>extractStatementPages([{items:[item('Not a bank table',10,100)]}]),e=>e.code==='PDF_LAYOUT_UNSUPPORTED');
+assert.throws(()=>extractStatementPages([{items:[]}],{usedOCR:true}),e=>e.code==='PDF_LAYOUT_UNSUPPORTED');
+const ocr=extractStatementPages([p1],{usedOCR:true});assert(ocr.warnings.some(w=>w.includes('OCR')));
+const continued=extractStatementPages([p1,{width:650,items:row('03/10/2026','Electricity','75.00','','14800.00',680)}]);assert.equal(continued.rows.length,4);
+const missingCredit={width:650,items:[item('Date',30,700),item('Description',120,700),item('Debit',340,700),...row('04/10/2026','Water','5.00','','100',680)]};
+assert.throws(()=>extractStatementPages([p1,missingCredit]),e=>e.code==='PDF_LAYOUT_UNSUPPORTED');
+assert.equal(textItemsToLines([...p1.items].reverse()).length,4);
+console.log('PDF/OCR geometry tests passed: debit/credit separation, repeated headers, wrapped narration, provenance, unknown/empty layout, OCR warnings, continuation pages, changed columns.');
+
+const damaged=extractStatementPages([{width:650,items:[...header(700),...row('O1/10/2026','Grocery','125.00','','9875.00',680),...row('02/10/2026','Salary','','5000.00','14875.00',650)]}],{usedOCR:true});assert.equal(damaged.rows[1][0],'O1/10/2026');assert.equal(damaged.rows.length,3);

@@ -60,7 +60,7 @@ click(document.querySelector('[data-action="reset-filters"]'));
 const input=document.querySelector('#file-input');
 const chooseFile=async(file)=>{Object.defineProperty(input,'files',{value:[file],configurable:true});change(input);await new Promise(r=>setTimeout(r,40));};
 await chooseFile(new File(['Date,Description,Debit,Credit\n14/10/2026,Test shopping,100,0\n15/10/2026,Test transfer,0,50'],'Additional.csv'));
-assert.ok(document.querySelector('#import-body').textContent.includes('2 transactions'));click(document.querySelector('[data-action="confirm-import"]'));assert.equal(JSON.parse(storage.values().next().value).transactions.length,1591);
+assert.equal(document.querySelector('.import-summary strong').textContent,'2');click(document.querySelector('[data-action="confirm-import"]'));assert.equal(JSON.parse(storage.values().next().value).transactions.length,1591);
 if(process.env.STATEMENT_FILE){await chooseFile(new File([fs.readFileSync(process.env.STATEMENT_FILE)],'Original.numbers'));assert.ok(document.querySelector('#import-body').textContent.includes('1589 exact overlaps'));click(document.querySelector('[data-action="confirm-import"]'));assert.equal(JSON.parse(storage.values().next().value).transactions.length,1591);}
 route('data');assert.ok(document.querySelector('main').textContent.includes('2 sources'));
 const backup=JSON.parse(storage.values().next().value);await chooseFile(new File([JSON.stringify(backup)],'backup.json'));assert.ok(document.querySelector('[data-action="confirm-backup"]'));click(document.querySelector('[data-action="confirm-backup"]'));assert.equal(JSON.parse(storage.values().next().value).transactions.length,1591);
