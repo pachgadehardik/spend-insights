@@ -8,4 +8,6 @@ The source statement is not included. `dist/seed.json` is the initial normalized
 
 Bank narratives cannot establish card acceptance, issuer merchant-category codes or fee-waiver eligibility. The planner is an editable scenario, not a guaranteed reward or eligibility calculation. Generic PDF ingestion is outside this version; use exported CSV or Excel instead.
 
-Run `npm test`. Set `STATEMENT_FILE` to the supplied Numbers file for the optional original-file import test. Tests use a DOM harness; visual browser QA was unavailable in the managed environment.
+Run `npm test`. Set `STATEMENT_FILE` to the supplied Numbers file for the optional original-file import test. Tests use a DOM harness and cover chart drilldowns, date presets, and bank-flow partitioning. The redesign was also checked in local Chrome at 390, 768, 1280 and 1440 px, including all five routes and keyboard navigation.
+
+The overview uses an identified-purchase breakdown, interactive monthly bars, and a separate bank-outflow map. Chart selections open the matching transactions. `insights.mjs` owns the presentation group definitions; the existing storage key and backup schema are preserved.
