@@ -9,6 +9,6 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build-offline.mjs",
-    "test": "node vault.test.mjs && node parser-fixtures.test.mjs && node pdf-import.test.mjs && node verification.test.mjs && node query.test.mjs"
+    "test": "node vault.test.mjs && node parser-fixtures.test.mjs && node pdf-import.test.mjs && node verification.test.mjs && node query.test.mjs && node runtime.test.mjs"
   }
 }

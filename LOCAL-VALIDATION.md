@@ -1,6 +1,6 @@
 # Local validation — 16 October 2026
 
-These checks validated the local edition before its update to the existing private GitHub repository. The deployed Sites version and original local private checkout are unchanged. The repository retains its prior history and must remain private unless that history is separately addressed.
+These checks validated the local edition before its update to the existing private GitHub repository. The original local private checkout remains separate; publication uses the tested local edition. The repository retains its prior history and must remain private unless that history is separately addressed.
 
 ## Passed
 
@@ -28,3 +28,7 @@ The ONNX runtime requires its asyncify variant. That exact vendored variant is n
 - Choose the eventual static host and create a clean public repository if desired. Do not expose the existing private repository history or personal seed.
 
 This report describes functional tests, not a security certification or proof that every network/browser configuration behaves identically.
+
+## Hosting preparation
+
+The 25.6 MiB WASM runtime is delivered as two assets below the host’s 25 MiB per-file limit. The browser reconstructs and verifies the original binary with SHA-256. Unit checks cover corrupt/missing parts and exact reconstruction. The real model browser test passed again online and offline with the split runtime (₹375 from the same two synthetic merchants), with no canary data in network URLs or bodies. Static security headers mirror the local server; hosting control files are excluded from the offline asset list.

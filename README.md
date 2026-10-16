@@ -37,7 +37,7 @@ Enabling semantic search explicitly downloads `onnx-community/embeddinggemma-2-O
 
 Model/tokenizer files are about 207 MB. The local ONNX runtime adds about 26 MB. WebGPU is required. Browser RAM/GPU usage is greater than download size and has not been benchmarked across devices. Embeddings, questions and graph results stay in memory; public model weights can remain in the browser cache. Similarity produces candidate groups, not a confidence percentage or proof of a relationship. Users can remove irrelevant groups from an answer.
 
-Transformers.js 4.3.1 is vendored. Both model calls and the remote URL template are pinned, because its tokenizer metadata probe otherwise defaults to `main`. The fetch wrapper permits only GET requests to the pinned model path. Runtime code is served from this app's own origin. Hosting and model providers can still see ordinary download access logs.
+Transformers.js 4.3.1 is vendored. Both model calls and the remote URL template are pinned, because its tokenizer metadata probe otherwise defaults to `main`. The fetch wrapper permits only GET requests to the pinned model path. Runtime code is served from this app's own origin. Its WASM binary is split into two static assets to fit the host’s file-size limit; the browser verifies their combined SHA-256 hash before loading it. Hosting and model providers can still see ordinary download access logs.
 
 ## Offline use
 
@@ -79,4 +79,4 @@ PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node tests/model-browse
 
 Set `CHROME_PATH` for another Chrome installation. The model test downloads real public weights and uses a persistent synthetic QA profile under `/tmp/spend-local-model-profile`. Test fixtures contain synthetic transactions only. See `LOCAL-VALIDATION.md` for the results and outstanding publication work.
 
-This edition is maintained in the existing private GitHub repository. Updating the repository is separate from publishing the website; the deployed Sites version is unchanged by this update.
+This edition is maintained in the existing private GitHub repository. Updating the repository is separate from publishing the website; a Sites deployment uses the same tested app files with its own hosting configuration.

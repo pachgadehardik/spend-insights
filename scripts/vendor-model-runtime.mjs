@@ -1,4 +1,4 @@
-import {mkdir,copyFile,writeFile} from 'node:fs/promises';
+import {mkdir,copyFile,writeFile,readFile,rm} from 'node:fs/promises';
 await mkdir('dist/vendor/transformers',{recursive:true});
 await copyFile('node_modules/@huggingface/transformers/dist/transformers.min.js','dist/vendor/transformers/transformers.min.js');
 await copyFile('node_modules/@huggingface/transformers/LICENSE','dist/vendor/transformers/LICENSE');
@@ -27,4 +27,9 @@ await copyFile('node_modules/@huggingface/jinja/LICENSE','dist/vendor/transforme
 await writeFile('dist/vendor/transformers/NOTICE.txt','Transformers.js 4.3.1, Apache-2.0. https://github.com/huggingface/transformers.js\nBundled browser runtime includes ONNX Runtime (MIT), Hugging Face tokenizers (Apache-2.0) and Jinja (Apache-2.0).\nModel weights are fetched on explicit enable only. ONNX WASM runtime is vendored under ../onnx and included in explicit offline setup. Pinned model revision is in semantic-worker.mjs.\n');
 
 await mkdir('dist/vendor/onnx',{recursive:true});
-for(const name of ['ort-wasm-simd-threaded.asyncify.mjs','ort-wasm-simd-threaded.asyncify.wasm'])await copyFile('node_modules/onnxruntime-web/dist/'+name,'dist/vendor/onnx/'+name);
+await copyFile('node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.asyncify.mjs','dist/vendor/onnx/ort-wasm-simd-threaded.asyncify.mjs');
+const file='ort-wasm-simd-threaded.asyncify.wasm';
+const runtime=await readFile('node_modules/onnxruntime-web/dist/'+file),split=16*1024*1024;
+await writeFile('dist/vendor/onnx/'+file+'.part1',runtime.subarray(0,split));
+await writeFile('dist/vendor/onnx/'+file+'.part2',runtime.subarray(split));
+await rm('dist/vendor/onnx/'+file,{force:true});

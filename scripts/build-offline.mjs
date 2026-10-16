@@ -1,7 +1,7 @@
 import {readdir,readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const list=[];
-async function walk(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const path=dir+'/'+entry.name;if(entry.isDirectory())await walk(path);else if(!['sw.js','.DS_Store'].includes(entry.name))list.push(path.slice(5));}}
+async function walk(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const path=dir+'/'+entry.name;if(entry.isDirectory())await walk(path);else if(!['sw.js','.DS_Store','_headers','_redirects'].includes(entry.name))list.push(path.slice(5));}}
 await walk('dist');list.sort();
 if(list.some(p=>/seed|statement|backup|\.sivault$/i.test(p)))throw Error('Unexpected data file in distributable.');
 const hash=createHash('sha256');for(const path of list){hash.update(path);hash.update(await readFile('dist/'+path));}

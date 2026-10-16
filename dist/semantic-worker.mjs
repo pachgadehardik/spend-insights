@@ -1,4 +1,5 @@
 import {env,AutoConfig,AutoTokenizer,AutoModel} from './vendor/transformers/transformers.min.js';
+import {loadRuntimeBinary} from './runtime-binary.mjs';
 const MODEL='onnx-community/embeddinggemma-2-ONNX';
 const REVISION='daa72c51243991dfcaf9f9137d2c573d8f7790c0';
 env.allowLocalModels=false;
@@ -19,6 +20,7 @@ async function load(id){
     if(!self.navigator?.gpu)throw Error('Semantic search needs a browser with WebGPU. Try a recent desktop Chrome or Edge. Structured questions still work.');
     const adapter=await self.navigator.gpu.requestAdapter();if(!adapter)throw Error('WebGPU is unavailable on this device. Structured questions still work.');
     const progress_callback=p=>{if(p.status==='progress')send(id,'progress',{message:`Downloading model · ${p.file} · ${Math.round(p.progress||0)}%`});};
+    env.backends.onnx.wasm.wasmBinary=await loadRuntimeBinary();
     const config=await AutoConfig.from_pretrained(MODEL,{revision:REVISION});config.vision_config=null;config.audio_config=null;
     tokenizer=await AutoTokenizer.from_pretrained(MODEL,{revision:REVISION,progress_callback});
     model=await AutoModel.from_pretrained(MODEL,{revision:REVISION,config,device:'webgpu',dtype:'q4',progress_callback});
