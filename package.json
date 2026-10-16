@@ -3,9 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "devDependencies": {
+    "@huggingface/transformers": "4.3.1",
     "linkedom": "0.18.12"
   },
   "scripts": {
-    "test": "node test.mjs && node parser-fixtures.test.mjs && node explorer.test.mjs && node pdf-import.test.mjs"
+    "test": "node test.mjs && node parser-fixtures.test.mjs && node explorer.test.mjs && node pdf-import.test.mjs && node query-engine.test.mjs"
   }
 }
