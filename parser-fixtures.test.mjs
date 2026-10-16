@@ -116,5 +116,5 @@ assert.notEqual(identify('ACH/EXAMPLE COMPANY/UNKNOWN',0,1000).category,'Interes
 assert.notEqual(identify('ACH/FIN INDIAN CLEARING',1000,0).category,'Investments & saving');
 assert.equal(identify('ACH/MUTUAL FUND PURCHASE',1000,0).category,'Investments & saving');
 assert.equal(identify('Dividend received',0,1000).category,'Interest & dividends');
-assert.notEqual(identify('UPI/HARDIK PACHGADE/PAYMENT',100,0).merchant,'Possible own-account transfer');
+assert.notEqual(identify('UPI/AVERY EXAMPLE/PAYMENT',100,0).merchant,'Possible own-account transfer');
 console.log(JSON.stringify({status:'passed',checks:'Synthetic INR header variants; explicit date/sign choices; ISO and named dates; amount grouping; debit/credit markers; invalid-row diagnostics; schema validation; source-row numbering; fingerprint compatibility; conservative classification.'}));

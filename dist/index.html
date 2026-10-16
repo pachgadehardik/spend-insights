@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Your private spending dashboard. Explore transactions, review categories and import future bank statements locally."><title>Spend Insights · Hardik</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="explorer.css"><link rel="stylesheet" href="connect.css"><link rel="stylesheet" href="import.css"><script src="vendor/xlsx.full.min.js" defer></script><script type="module" src="app.mjs"></script></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Your private spending dashboard. Explore transactions, review categories and import future bank statements locally."><title>Spend Insights · On your device</title><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' https://huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#263b2e"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="explorer.css"><link rel="stylesheet" href="connect.css"><link rel="stylesheet" href="import.css"><link rel="stylesheet" href="privacy.css"><script src="vendor/xlsx.full.min.js" defer></script><script type="module" src="app.mjs"></script></head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<div class="shell">
+<section id="privacy-gate" aria-label="Choose private storage"><div class="loading">Opening Spend Insights…</div></section>
+<div class="shell" hidden>
  <aside class="sidebar">
   <a class="brand" href="#overview" aria-label="Spend Insights home"><span class="brand-icon">s<span>i</span></span><span>Spend<br><b>Insights</b></span></a>
   <div class="workspace-label">YOUR ANALYSES · INR</div><div class="analysis-switcher"><label class="sr-only" for="workspace-switch">Current analysis</label><select id="workspace-switch"></select><button data-action="new-analysis" aria-label="Start a new analysis" title="Start a new analysis">+</button></div>
@@ -11,20 +12,22 @@
    <a href="#explorer" data-page="explorer"><i data-icon="spark"></i>Explore connections</a>
    <a href="#transactions" data-page="transactions"><i data-icon="transactions"></i>Transactions<span id="nav-review"></span></a>
    <a href="#patterns" data-page="patterns"><i data-icon="patterns"></i>Spending patterns</a>
-   <a href="#planner" data-page="planner"><i data-icon="card"></i>Card planner</a>
    <a href="#data" data-page="data"><i data-icon="data"></i>Statements & backups</a>
+   <a href="#compatibility" data-page="compatibility"><i data-icon="check"></i>Statement compatibility</a>
+   <a href="#privacy" data-page="privacy"><i data-icon="info"></i>Privacy & offline</a>
   </nav>
-  <div class="side-bottom"><div class="private-note"><span class="live-dot"></span>Private dashboard</div><p>New uploads and category edits stay in this browser.</p><button class="side-import" data-action="upload"><i data-icon="upload"></i>Import statement</button><div class="profile"><span class="avatar">HP</span><span id="analysis-name">My spending</span></div></div>
+  <div class="side-bottom"><div class="private-note"><span class="live-dot"></span>On your device</div><p>Read, review and explore without uploading your statements.</p><button class="side-import" data-action="upload"><i data-icon="upload"></i>Import statement</button><div class="profile"><span class="avatar">SI</span><span id="analysis-name">My spending</span></div></div>
  </aside>
  <div class="main-shell">
-  <header class="topbar"><span class="breadcrumb">Workspace <span>/</span> <b id="page-label">Overview</b></span><div class="top-actions"><span class="local-status" id="save-status">Saved on this browser</span><button class="button small" data-action="backup"><i data-icon="download"></i>Backup</button><button class="button primary small" data-action="upload"><i data-icon="plus"></i>Import statement</button></div></header>
+  <header class="topbar"><span class="breadcrumb">Workspace <span>/</span> <b id="page-label">Overview</b></span><div class="top-actions"><span class="local-status" id="save-status">Choose how to save</span><button class="button small" data-private="lock" id="lock-label">Lock vault</button><button class="button small" data-private="backup"><i data-icon="download"></i>Backup</button><button class="button primary small" data-action="upload"><i data-icon="plus"></i>Import statement</button></div></header>
   <main id="main" tabindex="-1"><div class="loading">Reading your statement…</div></main>
-  <footer><span>SPEND INSIGHTS</span><span>Suggested categories are editable. Bank narrations do not prove a purchase’s card eligibility.</span></footer>
+  <footer><span>SPEND INSIGHTS</span><span>Categories are suggestions. Review source rows before relying on totals.</span></footer>
  </div>
 </div>
-<input type="file" id="file-input" accept=".pdf,.png,.jpg,.jpeg,.webp,.numbers,.xlsx,.xls,.csv,.tsv,.json" hidden>
+<input type="file" id="file-input" accept=".pdf,.png,.jpg,.jpeg,.webp,.numbers,.xlsx,.xls,.csv,.tsv,.json,.sivault" hidden>
 <dialog id="import-dialog" aria-labelledby="import-title"><div id="import-body"></div></dialog>
 <dialog id="detail-dialog" aria-labelledby="detail-title"><div id="detail-body"></div></dialog>
+<dialog id="privacy-dialog" aria-labelledby="privacy-title"><form id="privacy-form"><h2 id="privacy-title"></h2><div id="privacy-fields"></div></form></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <noscript>This dashboard needs JavaScript to analyze statements in your browser.</noscript>
 </body></html>

@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {parseRows,detectMapping} from './dist/core.mjs';
+import {planQuestion,executeQuestion} from './dist/query-engine.mjs';
+import {knowledgeGraph} from './dist/knowledge-graph.mjs';
+const table=[['Date','Description','Debit','Credit'],['01/09/2026','Amazon',100.01,0],['01/10/2026','Amazon',200.01,0],['02/10/2026','Salary',0,5000]];
+const rows=parseRows(table,{...detectMapping(table),account:'bank',accountKey:'Synthetic account',source:'Synthetic fixture'}).transactions;
+const result=executeQuestion(rows,planQuestion('Where do I spend most?',rows));
+assert(!result.error);assert(result.rows.length);assert.equal(result.metrics[0].current,300.02);
+const graph=knowledgeGraph(result.rows,{direction:'debit'});assert(graph.nodes.length);assert(graph.links.length);assert.equal(graph.total,2);
+const credit=executeQuestion(rows,planQuestion('How much money came in?',rows));assert.equal(credit.metrics[0].current,5000);
+console.log('Query and graph evidence tests passed with synthetic data.');

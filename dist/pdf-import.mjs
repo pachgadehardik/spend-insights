@@ -160,14 +160,18 @@ async function imageCanvas(file) {
 }
 /** All statement bytes and OCR processing stay in the browser. Only bundled,
  * same-origin code, fonts and English recognition data are requested. */
-export async function readStatementDocument(file,{password,onProgress}={}) {
+export async function readStatementDocument(file,{password,onProgress,signal}={}) {
   if(file.size>20*1024*1024)throw fail('FILE_TOO_LARGE','Choose a file smaller than 20 MB.');
   const isImage=/^image\/(jpeg|png|webp)$/.test(file.type)||/\.(jpe?g|png|webp)$/i.test(file.name||'');
   const state={page:0,pages:1};let worker=null,task=null,doc=null,usedOCR=false,ocrCount=0;const pages=[],extraWarnings=[];
+  const aborted=()=>{if(signal?.aborted)throw new DOMException('Import cancelled.','AbortError');};
+  const abort=()=>{worker?.terminate().catch(()=>{});task?.destroy().catch(()=>{});};
+  signal?.addEventListener('abort',abort,{once:true});aborted();
   const ocr=async(canvas)=>{
+    aborted();
     usedOCR=true;ocrCount++;if(ocrCount>OCR_LIMIT)throw fail('OCR_TOO_MANY_PAGES',`Scanned imports are limited to ${OCR_LIMIT} pages per file. Split the PDF into smaller files, or use CSV/XLSX.`);
     onProgress?.({stage:'ocr',...state,progress:0});if(!worker)worker=await makeOCR(onProgress,state);
-    const result=await recognizeCanvas(canvas,worker);
+    aborted();const result=await recognizeCanvas(canvas,worker);aborted();
     if(result.confidence<80)extraWarnings.push(`OCR confidence is low on page ${state.page}; check every field carefully or upload a clearer image.`);
     return result;
   };
@@ -178,14 +182,14 @@ export async function readStatementDocument(file,{password,onProgress}={}) {
       try{pages.push(await ocr(canvas));}finally{canvas.width=canvas.height=0;}
     }else{
       const pdfjs=await loadPDF();
-      task=pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),password,
+      aborted();task=pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),password,
         cMapUrl:base('./vendor/pdfjs/cmaps/'),cMapPacked:true,standardFontDataUrl:base('./vendor/pdfjs/standard_fonts/'),
         useWasm:false,isEvalSupported:false,disableAutoFetch:true,disableStream:true,disableRange:true,
       });
       doc=await task.promise;state.pages=doc.numPages;
       if(doc.numPages>PDF_LIMIT)throw fail('PDF_TOO_MANY_PAGES',`PDF imports are limited to ${PDF_LIMIT} pages. Split the statement into smaller files.`);
       for(let n=1;n<=doc.numPages;n++){
-        state.page=n;onProgress?.({stage:'extract',...state});const page=await doc.getPage(n),viewport=page.getViewport({scale:1});
+        aborted();state.page=n;onProgress?.({stage:'extract',...state});const page=await doc.getPage(n),viewport=page.getViewport({scale:1});
         try{
           const content=await page.getTextContent(),items=content.items.filter(i=>typeof i.str==='string'&&i.str.trim());
           const lines=textItemsToLines(items),hasHeader=lines.some(line=>asHeader(line));
@@ -200,13 +204,15 @@ export async function readStatementDocument(file,{password,onProgress}={}) {
         }finally{page.cleanup();}
       }
     }
-    const result=extractStatementPages(pages,{usedOCR});result.warnings.push(...extraWarnings);return result;
+    aborted();const result=extractStatementPages(pages,{usedOCR});result.warnings.push(...extraWarnings);return result;
   }catch(error){
+    if(signal?.aborted||error.name==='AbortError')throw new DOMException('Import cancelled.','AbortError');
     if(error.code&&typeof error.code==='string')throw error;
     if(error.name==='PasswordException')throw fail(error.code===2?'PDF_PASSWORD_INCORRECT':'PDF_PASSWORD_REQUIRED',error.code===2?'That PDF password did not work. Try the statement password supplied by your bank.':'This PDF is password protected. Enter its password to read it locally.');
     if(error.name==='InvalidPDFException')throw fail('PDF_INVALID','This file could not be read as a PDF. Download it again or use CSV/XLSX.');
     throw fail(usedOCR?'OCR_FAILED':'PDF_READ_FAILED',usedOCR?'The local OCR reader could not finish. Try a smaller, clearer image or use CSV/XLSX.':'The PDF reader could not finish. Try downloading the file again, or use CSV/XLSX.',{cause:error});
   }finally{
+    signal?.removeEventListener('abort',abort);
     if(worker)await worker.terminate().catch(()=>{});
     if(task)await task.destroy().catch(()=>{});
   }

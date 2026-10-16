@@ -1,5 +1,12 @@
-node_modules/
-.openai/local/
+node_modules
+.openai/
+.DS_Store
+dist/seed.json
+*.sivault
 *.numbers
 *.csv
+*.tsv
 *.xlsx
+*.xls
+*.pdf
+!tests/fixtures/*.pdf

@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {verifyStatement} from './dist/verification.mjs';
+const rows=[{debit:100.01,credit:0},{debit:99.99,credit:0},{debit:0,credit:5000}];
+assert.equal(verifyStatement(rows).provided,0);
+assert.equal(verifyStatement(rows,{debit:'200.00',credit:'5,000',count:'3'}).checks.length,3);
+assert.equal(verifyStatement(rows,{debit:'200.01',credit:'100',count:'2'}).errors.length,3);
+assert.equal(verifyStatement(rows,{debit:'abc',count:'3.5'}).errors.length,2);
+assert.equal(verifyStatement(rows,{debit:'0'}).errors.length,1);
+assert.equal(verifyStatement([],{debit:'0',credit:'0',count:'0'}).checks.length,3);
+console.log('Independent statement total/count checks passed.');

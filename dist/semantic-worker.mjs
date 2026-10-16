@@ -2,6 +2,11 @@ import {env,AutoConfig,AutoTokenizer,AutoModel} from './vendor/transformers/tran
 const MODEL='onnx-community/embeddinggemma-2-ONNX';
 const REVISION='daa72c51243991dfcaf9f9137d2c573d8f7790c0';
 env.allowLocalModels=false;
+// Transformers 4.3.1 tokenizer metadata probes omit revision; pin the URL template too.
+env.remotePathTemplate='{model}/resolve/'+REVISION+'/';
+env.backends.onnx.wasm.wasmPaths=new URL('./vendor/onnx/',import.meta.url).href;
+const nativeFetch=globalThis.fetch.bind(globalThis);
+env.fetch=(input,init={})=>{const url=new URL(input instanceof Request?input.url:input);if(url.origin!=='https://huggingface.co'||!url.pathname.startsWith('/'+MODEL+'/resolve/'+REVISION+'/')||(init.method&&init.method!=='GET')||init.body)throw Error('Only pinned model file downloads are allowed.');return nativeFetch(input,{...init,credentials:'omit',referrerPolicy:'no-referrer'});};
 env.useBrowserCache=true;
 env.backends.onnx.wasm.numThreads=1;
 let model,tokenizer,loading,index=new Map();

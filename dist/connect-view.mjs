@@ -7,6 +7,7 @@ const starters=['Where do I spend most?','Which recurring expenses increased thi
 const followups=['Only my credit card','Compare with last month','Show all history'];
 export class ConnectionExplorer{
   constructor(){this.semantic=new SemanticClient();this.history=[];this.serial=0;this.status='';this.busy=false;this.expanded=false;}
+  dispose(){this.serial++;this.semantic.stop();this.rows=[];this.history=[];this.result=null;this.signature=null;this.status='';this.busy=false;this.focus=null;this.root=null;this.canvas=null;}
   render(rows,context){
     const signature=context+'|'+JSON.stringify(rows.map(t=>[t.id,t.category,t.merchant,t.debit,t.credit,t.review]));
     if(signature!==this.signature){this.signature=signature;this.serial++;this.rows=rows;this.history=[];this.focus=null;this.busy=false;this.status='';this.semantic.clear();this.result=executeQuestion(rows,planQuestion('Where do I spend most?',rows));}
@@ -70,7 +71,7 @@ export class ConnectionExplorer{
     messages.scrollTop=messages.scrollHeight;
     this.root.querySelector('#kg-status').textContent=this.status;
     this.root.querySelector('#kg-question').disabled=this.busy;this.root.querySelector('[type=submit]').disabled=this.busy;
-    this.root.querySelector('#kg-model').innerHTML=this.busy?'<span>Processing on this device</span><button data-kg="cancel">Cancel</button>':this.semantic.ready?'<span class="kg-ready">● EmbeddingGemma 2 ready · local</span>':'<div><b>Search by meaning</b><p>Enable EmbeddingGemma 2 · ~235 MB first download including runtime, cached by your browser. Model files come from Hugging Face and jsDelivr; statement data stays here. Requires WebGPU.</p></div><button data-kg="enable">Enable semantic search ↗</button>';
+    this.root.querySelector('#kg-model').innerHTML=this.busy?'<span>Processing on this device</span><button data-kg="cancel">Cancel</button>':this.semantic.ready?'<span class="kg-ready">● EmbeddingGemma 2 ready · local</span>':'<div><b>Search by meaning</b><p>Enable EmbeddingGemma 2 · ~207 MB model download plus 26 MB runtime, cached by your browser. Model files come from Hugging Face; statement data stays here. Requires WebGPU.</p></div><button data-kg="enable">Enable semantic search ↗</button>';
     this.drawGraph();
   }
   drawGraph(){

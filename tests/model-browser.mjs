@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {mkdir} from 'node:fs/promises';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
+await mkdir('/tmp/spend-local-qa',{recursive:true});
+const context=await chromium.launchPersistentContext('/tmp/spend-local-model-profile',{executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true,args:['--enable-unsafe-webgpu'],viewport:{width:1440,height:1000}});
+const page=await context.newPage(),requests=[],errors=[];context.on('request',r=>requests.push({url:r.url(),body:r.postData(),method:r.method()}));page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+const csv='Date,Description,Debit,Credit\n01/10/2026,Swiggy lunch LOCAL_MODEL_CANARY_Q4,125,0\n02/10/2026,Indian Oil petrol,1000,0\n03/10/2026,Salary,0,5000\n04/10/2026,Netflix,199,0\n05/10/2026,Zomato dinner,250,0';
+async function importRows(){await page.locator('#file-input').setInputFiles({name:'synthetic.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});await page.locator('#import-reviewed').check();await page.locator('[data-action="confirm-import"]').click();await page.locator('#kg-question').waitFor();}
+async function enable(){const start=Date.now();await page.locator('[data-kg="enable"]').click();let previous='';for(let i=0;i<600;i++){if(await page.locator('.kg-ready').isVisible())return Date.now()-start;const status=await page.locator('#kg-status').innerText();if(status!==previous){previous=status;console.log(status);}if(await page.locator('[data-kg="enable"]').isVisible())throw Error('Model failed: '+status);await page.waitForTimeout(1000);}throw Error('Model timed out');}
+async function ask(){const start=Date.now();await page.locator('#kg-question').fill('Show dining related payments');await page.locator('#kg-form [type="submit"]').click();await page.waitForFunction(()=>!document.querySelector('#kg-question').disabled,{},{timeout:90000});const answer=await page.locator('.kg-answer').last().innerText();assert(!answer.includes('needs semantic matching'));assert(!answer.includes('could not'));assert(answer.includes('suggested semantic matches'),answer);return {ms:Date.now()-start,answer};}
+try{
+ await page.goto('http://127.0.0.1:4174');await page.locator('[data-private="session"]').click();await importRows();const coldMs=await enable();const online=await ask();console.log('ONLINE',JSON.stringify({coldMs,...online}));
+ await page.locator('[data-page="privacy"]').click();await page.locator('[data-private="offline"]').click();await page.waitForFunction(()=>document.querySelector('#offline-status').textContent.startsWith('Offline assets are ready'),{},{timeout:120000});await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
+ await context.setOffline(true);await page.reload();await page.locator('[data-private="session"]').click();await importRows();const warmMs=await enable();const offline=await ask();console.log('OFFLINE',JSON.stringify({warmMs,...offline}));
+ await page.screenshot({path:'/tmp/spend-local-qa/model-offline.png',fullPage:true});
+ assert(!requests.some(r=>r.url.includes('LOCAL_MODEL_CANARY_Q4')||r.body?.includes('LOCAL_MODEL_CANARY_Q4')||r.url.includes('Show%20dining')));assert(requests.every(r=>r.method==='GET'));assert.deepEqual(errors,[]);
+ console.log(JSON.stringify({status:'passed',coldMs,warmMs,queryOnlineMs:online.ms,queryOfflineMs:offline.ms,requests:requests.length}));
+}catch(error){await page.screenshot({path:'/tmp/spend-local-qa/model-failure.png',fullPage:true});console.error(errors);throw error;}finally{await context.close();}
